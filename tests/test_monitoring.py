@@ -22,6 +22,11 @@ class MonitoringWorkflowTests(unittest.TestCase):
         self.assertEqual(sum(result["target_distribution"].values()), 20)
         self.assertEqual(result["duplicate_ids"], 0)
 
+    def test_validation_rejects_missing_required_columns(self):
+        batch = make_synthetic_data(5, seed=12).drop(columns=["usage_hours"])
+        with self.assertRaisesRegex(ValueError, "Missing required columns"):
+            validate_batch(batch)
+
     def test_validation_rejects_duplicate_ids(self):
         batch = make_synthetic_data(5, seed=12)
         batch.loc[1, ID_COLUMN] = batch.loc[0, ID_COLUMN]
