@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-11-20T08:25:12.101334+00:00",
+  "batch_path": "artifacts/new_batch.csv",
+  "validation": {
+    "rows": 200,
+    "columns": [
+      "customer_id",
+      "tenure_months",
+      "monthly_spend",
+      "support_tickets",
+      "usage_hours",
+      "churned"
+    ],
+    "missing_values": {},
+    "duplicate_ids": 0,
+    "target_distribution": {
+      "0": 133,
+      "1": 67
+    }
+  },
+  "champion_metrics": {
+    "accuracy": 0.705,
+    "precision": 0.9,
+    "recall": 0.134328,
+    "f1": 0.233766
+  },
+  "candidate_metrics": {
+    "accuracy": 0.705,
+    "precision": 0.833333,
+    "recall": 0.149254,
+    "f1": 0.253165
+  },
+  "quality_gate": {
+    "eligible_for_promotion": true,
+    "decision": "candidate_eligible",
+    "rule": {
+      "primary_metric": "f1",
+      "minimum_f1_delta": -0.02,
+      "minimum_accuracy_delta": -0.02
+    },
+    "metric_deltas": {
+      "f1": 0.019399,
+      "accuracy": 0.0
+    },
+    "reason": "Candidate meets the F1 and accuracy non-regression thresholds."
+  },
+  "candidate_model": "artifacts/candidate_model.joblib",
+  "mlflow": "not_installed",
+  "champion_overwritten": false
+}
