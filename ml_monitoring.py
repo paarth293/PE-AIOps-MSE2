@@ -224,6 +224,11 @@ def main() -> None:
     run_parser.add_argument("batch", type=Path)
     run_parser.add_argument("--artifact-dir", type=Path, default=DEFAULT_ARTIFACT_DIR)
     run_parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR)
+    run_parser.add_argument(
+        "--enforce-gate",
+        action="store_true",
+        help="fail the command when the candidate is not eligible for promotion",
+    )
     args = parser.parse_args()
     if args.command == "init":
         print(json.dumps(initialize_project(args.artifact_dir), indent=2))
@@ -233,7 +238,10 @@ def main() -> None:
         batch.to_csv(args.output, index=False)
         print(json.dumps(validate_batch(batch), indent=2))
     else:
-        print(json.dumps(run_workflow(args.batch, args.artifact_dir, args.report_dir), indent=2))
+        report = run_workflow(args.batch, args.artifact_dir, args.report_dir)
+        print(json.dumps(report, indent=2))
+        if args.enforce_gate and not report["quality_gate"]["eligible_for_promotion"]:
+            raise SystemExit("Quality gate failed; champion remains active.")
 
 
 if __name__ == "__main__":
