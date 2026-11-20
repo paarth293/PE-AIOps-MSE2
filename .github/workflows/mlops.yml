@@ -1,6 +1,12 @@
 name: MLOps Monitoring and Retraining
 
 on:
+  push:
+    branches: ["main"]
+    paths:
+      - "ml_monitoring.py"
+      - "requirements.txt"
+      - ".github/workflows/mlops.yml"
   workflow_dispatch:
     inputs:
       batch_rows:

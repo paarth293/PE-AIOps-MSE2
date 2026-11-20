@@ -53,6 +53,24 @@ python -m unittest discover -s tests -v
 The tests cover batch statistics, duplicate-ID rejection, artifact creation,
 report creation, and preservation of the champion artifact.
 
+## CI/CD and MLOps automation
+
+The repository uses two GitHub Actions workflows:
+
+- **Continuous Integration** ([ci.yml](.github/workflows/ci.yml)) runs on every
+  `main` push and pull request. It installs pinned runtime requirements,
+  compiles the application, and runs the complete test suite.
+- **MLOps Monitoring and Retraining** ([mlops.yml](.github/workflows/mlops.yml))
+  runs on relevant `main` changes, weekly on a schedule, or manually when
+  repository Actions permissions allow dispatch. It validates a new labelled
+  batch, evaluates the champion, trains a candidate, enforces the quality gate,
+  publishes a run summary, and retains model/report artifacts for 14 days.
+
+The MLOps workflow is intentionally promotion-safe: a failed gate exits the
+job while retaining the champion, and a passing gate produces an eligible
+candidate artifact for an approved deployment process. No GitHub Action
+silently replaces the champion model.
+
 ## Assessment demonstration checklist
 
 For a live demonstration, show the terminal output from `init`,
