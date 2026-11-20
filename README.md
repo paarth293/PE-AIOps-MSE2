@@ -52,3 +52,12 @@ python -m unittest discover -s tests -v
 
 The tests cover batch statistics, duplicate-ID rejection, artifact creation,
 report creation, and preservation of the champion artifact.
+
+## Assessment demonstration checklist
+
+For a live demonstration, show the terminal output from `init`,
+`generate-batch`, and `run`, then open `reports/evaluation_report.json`. Point
+out the validation summary, both metric sets, `candidate_eligible`, and
+`champion_overwritten: false`. Finally, show both model files in `artifacts/`
+and run the test command to demonstrate that validation, evaluation,
+retraining, and both quality-gate decisions are covered.
