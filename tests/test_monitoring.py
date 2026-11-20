@@ -57,6 +57,11 @@ class MonitoringWorkflowTests(unittest.TestCase):
             make_synthetic_data(200, seed=99, start_id=801).to_csv(batch_path, index=False)
             report = run_workflow(batch_path, artifacts, reports)
             self.assertTrue(Path(report["candidate_model"]).exists())
+            self.assertTrue((artifacts / "champion_model.joblib").exists())
+            self.assertNotEqual(
+                Path(report["candidate_model"]).resolve(),
+                (artifacts / "champion_model.joblib").resolve(),
+            )
             self.assertTrue(Path(report["report_path"]).exists())
             self.assertFalse(report["champion_overwritten"])
             saved = json.loads(Path(report["report_path"]).read_text())
