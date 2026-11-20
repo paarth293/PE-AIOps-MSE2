@@ -4,3 +4,7 @@ __pycache__/
 .venv/
 artifacts/
 reports/
+!reports/
+reports/*
+!reports/evaluation_report.md
+!reports/valuation_report.txt

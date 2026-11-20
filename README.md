@@ -79,3 +79,9 @@ out the validation summary, both metric sets, `candidate_eligible`, and
 `champion_overwritten: false`. Finally, show both model files in `artifacts/`
 and run the test command to demonstrate that validation, evaluation,
 retraining, and both quality-gate decisions are covered.
+
+## Evaluation report
+
+The complete evaluator-facing project report is available at
+[reports/evaluation_report.md](reports/evaluation_report.md). A plain-text
+version is available at [reports/valuation_report.txt](reports/valuation_report.txt).

@@ -1,0 +1,277 @@
+================================================================================
+                    MODEL VALUATION AND EVALUATION REPORT
+================================================================================
+
+Project:       Model-Quality Monitoring and Retraining Workflow
+Report type:   Technical Model Valuation Report
+Prepared for:  Paarth Gupta
+Enrollment No: 202401100200221
+Class/Section: CSE V D
+Report date:   20 November 2026
+
+
+1. EXECUTIVE SUMMARY
+--------------------
+
+This report evaluates a machine-learning classification monitoring workflow
+designed to identify customer churn. The workflow compares an existing
+production "champion" model with a newly retrained "candidate" model using a
+labelled incoming batch of 200 customer records.
+
+The candidate model achieved a higher F1 score than the champion model while
+maintaining the same accuracy. It therefore passed the defined quality gate and
+was marked eligible for promotion. The workflow intentionally did not replace
+the champion model automatically. This separation protects the deployed model
+until an authorized deployment decision is made.
+
+Overall result:        CANDIDATE ELIGIBLE FOR PROMOTION
+Champion overwritten:  NO
+MLflow status:         Not installed; local report generated successfully
+
+
+2. OBJECTIVE AND SCOPE
+----------------------
+
+The objective of this project is to demonstrate a repeatable and promotion-safe
+machine-learning operations process that:
+
+  * Validates the schema and quality of new labelled data.
+  * Evaluates the currently deployed champion model.
+  * Retrains a separate candidate model using historical and incoming data.
+  * Compares the candidate and champion using classification metrics.
+  * Applies an explicit quality gate before recommending promotion.
+  * Preserves the champion artifact regardless of the quality-gate result.
+  * Records the complete result in a machine-readable evaluation report.
+
+The data used in this demonstration is reproducible synthetic customer-churn
+data. The results should therefore be interpreted as a technical workflow
+evaluation, not as a commercial or financial valuation of a real business.
+
+
+3. SYSTEM AND DATA DESCRIPTION
+------------------------------
+
+The workflow uses a binary classification target:
+
+  Target variable: churned
+  Class 0:         Customer did not churn
+  Class 1:         Customer churned
+
+Input features:
+
+  * tenure_months
+  * monthly_spend
+  * support_tickets
+  * usage_hours
+
+Record identifier:
+
+  * customer_id
+
+Historical training data:
+
+  * 800 records
+  * Generated with a fixed seed for reproducibility
+
+Incoming evaluation batch:
+
+  * 200 records
+  * 133 non-churn records (Class 0)
+  * 67 churn records (Class 1)
+  * Class 0 proportion: 66.50%
+  * Class 1 proportion: 33.50%
+
+
+4. METHODOLOGY
+--------------
+
+4.1 Data validation
+
+Before evaluation, the incoming batch was checked for:
+
+  * Presence of all required columns.
+  * Missing values.
+  * Duplicate customer identifiers.
+  * Valid binary target values.
+  * Row count and target-class distribution.
+
+Validation outcome:
+
+  * Rows validated: 200
+  * Missing values: 0
+  * Duplicate customer IDs: 0
+  * Invalid target values: 0
+  * Validation status: PASSED
+
+4.2 Model pipeline
+
+Both models use the same reproducible pipeline:
+
+  1. StandardScaler for numerical feature standardization.
+  2. LogisticRegression classifier.
+  3. Maximum iterations: 1000.
+  4. Fixed random state: 42.
+
+The champion model was evaluated on the incoming labelled batch. The candidate
+model was trained on the combined historical training data and incoming batch,
+then evaluated on that same incoming batch for this demonstration workflow.
+
+4.3 Evaluation metrics
+
+The following metrics were calculated:
+
+  * Accuracy: proportion of all predictions that are correct.
+  * Precision: proportion of predicted churn cases that are actual churn cases.
+  * Recall: proportion of actual churn cases detected by the model.
+  * F1 score: harmonic mean of precision and recall.
+
+F1 was selected as the primary quality measure because it balances precision
+and recall for the churn class. Accuracy was retained as a secondary safeguard
+against a material overall regression.
+
+
+5. MODEL VALUATION RESULTS
+--------------------------
+
+Metric                  Champion Model       Candidate Model       Difference
+----------------------  -------------------  --------------------  ----------
+Accuracy                0.705000 (70.50%)    0.705000 (70.50%)     0.000000
+Precision               0.900000 (90.00%)    0.833333 (83.33%)    -0.066667
+Recall                  0.134328 (13.43%)    0.149254 (14.93%)     0.014926
+F1 score                0.233766 (23.38%)    0.253165 (25.32%)     0.019399
+
+Interpretation:
+
+  * The candidate retained the champion's accuracy.
+  * The candidate improved recall, identifying more of the actual churn cases.
+  * The candidate improved the primary F1 score by 0.019399.
+  * Precision declined by 0.066667, meaning the candidate generated more
+    false-positive churn alerts than the champion.
+  * The F1 improvement indicates a better balance between churn precision and
+    churn recall under the selected evaluation rule.
+
+
+6. QUALITY-GATE ASSESSMENT
+--------------------------
+
+The quality gate permits promotion when both conditions are satisfied:
+
+  * Candidate F1 delta is at least -0.020000.
+  * Candidate accuracy delta is at least -0.020000.
+
+Observed deltas:
+
+  * F1 delta:       +0.019399
+  * Accuracy delta:  0.000000
+
+Gate decision:       PASSED
+Workflow decision:   candidate_eligible
+Champion status:     Retained and not overwritten
+
+The candidate satisfied both non-regression thresholds. The workflow records
+eligibility but deliberately leaves the final production promotion decision to
+an approved deployment process.
+
+
+7. ARTIFACTS AND REPRODUCIBILITY
+---------------------------------
+
+The run produced or retained the following artifacts:
+
+  * artifacts/training_data.csv
+      Historical synthetic training data.
+  * artifacts/champion_model.joblib
+      Existing deployed-model artifact; preserved during the run.
+  * artifacts/candidate_model.joblib
+      Newly retrained candidate-model artifact.
+  * artifacts/new_batch.csv
+      Labelled incoming evaluation batch.
+  * reports/evaluation_report.json
+      Machine-readable validation, metric, and gate results.
+
+The workflow can be reproduced with:
+
+  python ml_monitoring.py init
+  python ml_monitoring.py generate-batch artifacts/new_batch.csv --rows 200
+  python ml_monitoring.py run artifacts/new_batch.csv
+
+The test suite can be executed with:
+
+  python -m unittest discover -s tests -v
+
+
+8. KEY FINDINGS
+---------------
+
+1. The incoming data passed all structural and quality checks.
+2. The candidate model improved the primary F1 metric.
+3. Overall accuracy did not regress.
+4. Recall improved, which is valuable when missing a potential churn customer
+   has a higher business cost than contacting a customer unnecessarily.
+5. Candidate precision decreased, so the operational cost of additional
+   retention alerts should be assessed before production promotion.
+6. The champion model remained protected and available for rollback.
+7. The workflow provides a clear audit trail through its JSON report and
+   separate model artifacts.
+
+
+9. LIMITATIONS
+--------------
+
+This demonstration has several limitations:
+
+  * The dataset is synthetic and may not represent real customer behaviour.
+  * The incoming batch is used for both candidate evaluation and candidate
+    training in this demonstration; a separate holdout or time-based test set
+    is recommended for production assessment.
+  * The report does not include calibration, confusion-matrix counts, feature
+    importance, fairness analysis, or cost-sensitive business metrics.
+  * The class distribution may differ from future production traffic.
+  * MLflow was not installed for this run, so experiment tracking was recorded
+    as "not_installed".
+  * A quality-gate pass indicates technical eligibility, not automatic business
+    approval.
+
+
+10. RECOMMENDATIONS
+-------------------
+
+Before production promotion, the following actions are recommended:
+
+  1. Evaluate the candidate on an independent, unseen, and preferably
+     time-separated test set.
+  2. Review the precision decline with business stakeholders and quantify the
+     cost of false-positive retention outreach.
+  3. Establish an operational threshold using the relative cost of false
+     negatives and false positives.
+  4. Add confusion-matrix, calibration, drift, and segment-level monitoring.
+  5. Install and configure MLflow or an equivalent tracking system for
+     centralized experiment and artifact lineage.
+  6. Conduct fairness and stability checks across relevant customer segments.
+  7. Promote only through an approved deployment process with rollback support.
+  8. Continue retaining the champion model until post-deployment monitoring
+     confirms that the candidate performs as expected.
+
+
+11. FINAL CONCLUSION
+--------------------
+
+The model monitoring and retraining workflow performed successfully. The
+incoming batch was valid, the candidate model improved F1 from 0.233766 to
+0.253165, and accuracy remained unchanged at 0.705000. Based on the configured
+quality gate, the candidate is eligible for promotion.
+
+The result is a controlled recommendation rather than an automatic deployment:
+the candidate artifact is available for review, while the champion model has
+been preserved. This approach supports reproducibility, auditability, safe
+rollback, and responsible machine-learning operations.
+
+Prepared by:
+
+Paarth Gupta
+Enrollment No. 202401100200221
+CSE V D
+
+================================================================================
+                              END OF REPORT
+================================================================================
