@@ -7,9 +7,11 @@ import pandas as pd
 
 from ml_monitoring import (
     ID_COLUMN,
+    evaluate_model,
     initialize_project,
     make_synthetic_data,
     run_workflow,
+    train_model,
     validate_batch,
 )
 
@@ -38,6 +40,12 @@ class MonitoringWorkflowTests(unittest.TestCase):
         batch.loc[0, "monthly_spend"] = None
         with self.assertRaisesRegex(ValueError, "Missing values"):
             validate_batch(batch)
+
+    def test_evaluation_returns_all_classification_metrics(self):
+        batch = make_synthetic_data(100, seed=20)
+        metrics = evaluate_model(train_model(batch), batch)
+        self.assertEqual(set(metrics), {"accuracy", "precision", "recall", "f1"})
+        self.assertTrue(all(0 <= value <= 1 for value in metrics.values()))
 
     def test_workflow_writes_report_and_keeps_champion(self):
         with tempfile.TemporaryDirectory() as directory:
