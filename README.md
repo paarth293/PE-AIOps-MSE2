@@ -1,1 +1,54 @@
-# PE-AIOps-MSE2
+# Model-quality monitoring and retraining
+
+This project demonstrates a complete classification monitoring workflow using
+reproducible synthetic customer-churn data. It keeps the deployed **champion**
+model separate from a newly trained **candidate** model.
+
+## Setup
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+## Run the workflow
+
+```bash
+python ml_monitoring.py init
+python ml_monitoring.py generate-batch artifacts/new_batch.csv --rows 200
+python ml_monitoring.py run artifacts/new_batch.csv
+```
+
+The commands create:
+
+- `artifacts/training_data.csv`: the original labelled training set.
+- `artifacts/champion_model.joblib`: the existing model and preprocessing pipeline.
+- `artifacts/candidate_model.joblib`: the retrained model, never written over the champion.
+- `reports/evaluation_report.json`: validation details, metrics, MLflow status, and
+  the quality-gate decision.
+
+### Workflow decisions
+
+1. **Prepare data:** required columns, missing values, duplicate customer IDs,
+   row count, and churn target distribution are validated and recorded.
+2. **Evaluate champion:** accuracy, precision, recall, and F1 are calculated on
+   the labelled incoming batch.
+3. **Retrain:** the original training set and incoming batch are combined and
+   fitted with the same `StandardScaler` + `LogisticRegression` pipeline.
+4. **Quality gate:** the candidate is eligible only when its F1 and accuracy are
+   no more than 0.02 below the champion. F1 is the primary criterion because it
+   balances precision and recall for the churn class; the accuracy floor prevents
+   a large overall regression. A failed gate records `retain_champion`.
+5. **Promotion:** the workflow records eligibility but never automatically
+   overwrites the champion.
+
+If MLflow is installed, candidate metrics and the gate decision are logged to an
+MLflow run. Without MLflow, the report explicitly records `not_installed`.
+
+## Verification
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+The tests cover batch statistics, duplicate-ID rejection, artifact creation,
+report creation, and preservation of the champion artifact.
