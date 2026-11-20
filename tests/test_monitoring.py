@@ -7,6 +7,8 @@ import pandas as pd
 
 from ml_monitoring import (
     ID_COLUMN,
+    QualityGate,
+    _quality_gate,
     evaluate_model,
     initialize_project,
     make_synthetic_data,
@@ -46,6 +48,14 @@ class MonitoringWorkflowTests(unittest.TestCase):
         metrics = evaluate_model(train_model(batch), batch)
         self.assertEqual(set(metrics), {"accuracy", "precision", "recall", "f1"})
         self.assertTrue(all(0 <= value <= 1 for value in metrics.values()))
+
+    def test_quality_gate_records_both_possible_decisions(self):
+        champion = {"accuracy": 0.8, "precision": 0.8, "recall": 0.8, "f1": 0.8}
+        eligible = _quality_gate(champion, {**champion, "f1": 0.81}, QualityGate())
+        rejected = _quality_gate(champion, {**champion, "f1": 0.7}, QualityGate())
+        self.assertEqual(eligible["decision"], "candidate_eligible")
+        self.assertEqual(rejected["decision"], "retain_champion")
+        self.assertIn("reason", rejected)
 
     def test_workflow_writes_report_and_keeps_champion(self):
         with tempfile.TemporaryDirectory() as directory:
